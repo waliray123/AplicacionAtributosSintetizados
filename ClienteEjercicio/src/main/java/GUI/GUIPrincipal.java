@@ -14,6 +14,7 @@ import objetos.Arbol;
 import objetos.ErrorCom;
 import objetos.Nodo;
 import objetos.NotPostFija;
+import objetos.Operacion;
 
 /**
  *
@@ -189,6 +190,7 @@ public class GUIPrincipal extends javax.swing.JFrame {
             nodoPadre = nodoP;
             mostrarPanelResultado();
             generarDot();
+            mostrarResultado();
 //            mostrarImagen();
         }
     }
@@ -209,6 +211,11 @@ public class GUIPrincipal extends javax.swing.JFrame {
         Arbol arbol = new Arbol();
         arbol.generarArbol(nodoPadre);
         arbol.crearPngArbol();
+    }
+    
+    private void mostrarResultado(){
+        Operacion opr = new Operacion(this.nodoPadre);
+        this.jTextField2.setText(String.valueOf(opr.getResultado()));
     }
     
     private void mostrarImagen(){
