@@ -1,0 +1,71 @@
+I -> E 					{nodoPadreTodos = E}
+
+E -> 	T 				E'.exp1 = T
+	E'					return (E')
+
+E'-> 	+ 				
+	T 					E'1.exp = T
+	E'1					generarUnion(E',E'1,"+"); return(idNodoSum);
+
+E'-> lambda				return(E'.exp1)
+
+T  -> 	F 				T'1.exp1 = F
+ 	T'1					return(T'1);
+
+T' -> 	*				
+	F 					T'1.exp1 = F
+	T'1					generarUnion(T',T'1,"*"); return(idNodoPor);
+
+T' -> lambda			return(T.exp1)
+
+F -> ID					crearNodo(ID),return(id)
+
+F -> NUM				crearNodo(NUM),return(id)	
+
+F -> ( E )				return(E)
+
+/***********************************/
+8+7*1+2
+
+I -> E 					nodoPadreTodos = E
+
+E -> E + T				generarUnion(E,T,"+"), return(idNodoSum)
+
+E -> T 					return(T)
+
+T -> T * F				generarUnion(T,F,"*"), return(idNodoPor)
+
+T -> F					return(F)
+
+F -> ID					crearNodo(ID),return(id)
+
+F -> NUM				crearNodo(NUM),return(id)	
+
+F -> ( E )				return(E)
+
+
+inicio ::= 
+        sig                 {:insertarNodoPadreTodos();:}
+;
+
+
+sig ::= 
+        sig:s SUMA sig2:s2  {:generarUnion(s,s2,"+");RESULT = numNodo;:}
+    |   sig2:e              {:RESULT = e;:}
+;
+
+sig2 ::=
+        sig2:s MULT expr:e  {:generarUnion(s,e,"*");RESULT = numNodo;:}
+    |   expr:e              {:RESULT = e;:}
+;
+
+expr ::=
+        NUM:e               {:crearNodo(e);RESULT = numNodo;:}
+    |   IDENT:e             {:crearNodo(e);RESULT = numNodo;:}
+    |   PARI sig:e PARD     {:crearNodo(e);RESULT = numNodo;:}
+;
+
+    "+" {errorPrueba(yytext(),"es suma");return new Symbol(sym.SUMA,yyline+1,yycolumn+1, yytext());} 
+    "*" {errorPrueba(yytext(),"es mult");return new Symbol(sym.MULT,yyline+1,yycolumn+1, yytext());}     
+    "(" {errorPrueba(yytext(),"es pari");return new Symbol(sym.PARI,yyline+1,yycolumn+1, yytext());}
+    ")" {errorPrueba(yytext(),"es pard");return new Symbol(sym.PARD,yyline+1,yycolumn+1, yytext());}

@@ -1,0 +1,118 @@
+package analizadores;
+
+import java_cup.runtime.*;
+import java.util.ArrayList;
+import java.util.List;
+import objetos.ErrorCom;
+import objetos.Nodo;
+
+parser code {:
+
+    private List<ErrorCom> erroresCom; 
+    private List<Nodo> listaNodos;
+    private String numNodo;
+    private Nodo nodoPadreTodos;
+
+	public Parser(Lexer lex) {
+		super(lex);
+        this.erroresCom = lex.getErroresCom();
+        this.listaNodos = new ArrayList<>();
+        numNodo = "0";
+	}
+
+    /**
+     * Método al que se llama automáticamente ante algún error sintactico.
+     **/ 
+    public void syntax_error(Symbol s){ 
+        erroresCom.add(new ErrorCom("Sintactico","No se esperaba Componente",String.valueOf(s.left),String.valueOf(s.right),String.valueOf(s.value)));
+    }
+
+    /**
+     * Método al que se llama automáticamente ante algún error sintáctico 
+     * en el que ya no es posible una recuperación de errores.
+     **/ 
+    public void unrecovered_syntax_error(Symbol s) throws java.lang.Exception{ 
+        erroresCom.add(new ErrorCom("Sintactico","Error sintactico Irrecuperable",String.valueOf(s.left),String.valueOf(s.right),String.valueOf(s.value)));
+    } 
+
+    public List<ErrorCom> getErroresCom(){
+        return this.erroresCom;
+    }
+
+    private void insertarNodoPadreTodos(){
+        Nodo nodoP = buscarNodo(Integer.parseInt(numNodo));
+        nodoPadreTodos = nodoP;
+    }
+
+    private void generarUnion(String val1,String val2,String val3){
+        crearNodo(val3);
+        Nodo nodoP = buscarNodo(Integer.parseInt(numNodo));
+        Nodo nodo1 = buscarNodo(Integer.parseInt(val1));
+        Nodo nodo2 = buscarNodo(Integer.parseInt(val2));
+        nodo1.insertarNodoPadre(nodoP);
+        nodo2.insertarNodoPadre(nodoP);
+        nodoP.insertarNodoHijo(nodo1);
+        nodoP.insertarNodoHijo(nodo2);
+    }
+
+    private void crearNodo(String val){
+        agregarNumNodo();
+        Nodo nodo = new Nodo(val,Integer.parseInt(numNodo));
+        listaNodos.add(nodo);
+    }
+
+    private void agregarNumNodo(){
+        int numN = Integer.parseInt(this.numNodo) + 1;
+        this.numNodo = String.valueOf(numN);
+    }
+
+    private Nodo buscarNodo(int numN){
+        for (Nodo nodo : listaNodos) {
+            if(nodo.getNumNodo() == numN){
+                return nodo;
+            }
+        }
+        return null;
+    }
+
+    public Nodo getPadreNodos(){
+        return this.nodoPadreTodos;
+    }
+:}
+
+/* Terminals (tokens returned by the scanner). */
+terminal 	    SUMA,MULT,PARI,PARD;
+terminal String NUM,IDENT;
+
+
+
+/* Non-Terminals (created scanner). */
+non terminal  inicio,sig,sig2,expr;
+//non terminal  division;
+
+
+/* The grammar : */
+
+start with inicio;
+
+inicio ::= 
+        sig                 {:insertarNodoPadreTodos();:}
+;
+
+
+sig ::= 
+        sig:s SUMA sig2:s2  {:generarUnion(String.valueOf(s),String.valueOf(s2),"+");RESULT = numNodo;:}
+    |   sig2:e              {:RESULT = e;:}
+;
+
+sig2 ::=
+        sig2:s MULT expr:e  {:generarUnion(String.valueOf(s),String.valueOf(e),"*");RESULT = numNodo;:}
+    |   expr:e              {:RESULT = String.valueOf(e);:}
+;
+
+expr ::=
+        NUM:e               {:crearNodo(String.valueOf(e));RESULT = numNodo;:}
+    |   IDENT:e             {:crearNodo(String.valueOf(e));RESULT = numNodo;:}
+    |   PARI sig:e PARD     {:RESULT = numNodo;:}
+;
+
